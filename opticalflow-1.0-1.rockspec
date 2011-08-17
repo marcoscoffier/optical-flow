@@ -52,7 +52,7 @@ build = {
 	 MESSAGE(STATUS "matlab include: " ${MATLAB_INCLUDE_DIR})
    	 MESSAGE(STATUS "project include: " ${PROJECT_SOURCE_DIR})
    	 MESSAGE(STATUS "cmake module: " ${CMAKE_MODULE_PATH})
-   	 add_library(celiu SHARED celiu.cpp)
+   	 add_library(celiu SHARED celiu.cpp generic/GaussianPyramid.cpp generic/OpticalFlowCode.cpp)
 
 	 link_directories (${TORCH_LIBRARY_DIR})
 	 target_link_libraries(celiu ${TORCH_LIBRARIES} ${MATLAB_LIBRARIES})

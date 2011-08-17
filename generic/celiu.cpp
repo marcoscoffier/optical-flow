@@ -139,6 +139,7 @@ int libceliu_(Main_warp)(lua_State *L) {
   return 1;
 }
 
+//extern "C" {
 // Register functions in LUA
 static const struct luaL_reg libceliu_(Main__) [] = {
   {"infer", libceliu_(Main_optflow)},
@@ -146,12 +147,11 @@ static const struct luaL_reg libceliu_(Main__) [] = {
   {NULL, NULL}  /* sentinel */
 };
 
-extern "C" {
   DLL_EXPORT int libceliu_(Main_init) (lua_State *L) {
     luaT_pushmetaclass(L, torch_(Tensor_id));
     luaT_registeratname(L, libceliu_(Main__), "libceliu");
     return 1; 
   }
-}
+//}
 
 #endif
