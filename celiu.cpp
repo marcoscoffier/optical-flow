@@ -10,6 +10,8 @@ static const void* torch_FloatTensor_id = NULL;
 static const void* torch_DoubleTensor_id = NULL;
 
 
+#include "generic/GaussianPyramid.cpp"
+#include "generic/OpticalFlowCode.cpp"
 #include "generic/celiu.cpp"
 #include "THGenerateFloatTypes.h"
 
