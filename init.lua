@@ -112,8 +112,8 @@ of channels (colors).]],
 			  nOuterFPIterations, nInnerFPIterations,
 			  nCGIterations)
    
-   local flow_norm  = computeNorm(flow_x,flow_y)
-   local flow_angle = computeAngle(flow_x,flow_y)
+   local flow_norm  = opticalflow.computeNorm(flow_x,flow_y)
+   local flow_angle = opticalflow.computeAngle(flow_x,flow_y)
    
    -- return results
    return flow_norm, flow_angle, warp, flow_x, flow_y
@@ -149,36 +149,23 @@ end
 function opticalflow.testme()
    local img1 = image.load(sys.concat(sys.fpath(), 'img1.jpg'))
    local img2 = image.load(sys.concat(sys.fpath(), 'img2.jpg'))
-   local img1s = torch.Tensor(img1:size(1)/2,img1:size(2)/2,3)
-   local img2s = torch.Tensor(img1:size(1)/2,img1:size(2)/2,3)
+   local img1s = torch.Tensor(3,img1:size(2)/2,img1:size(3)/2)
+   local img2s = torch.Tensor(3,img1:size(2)/2,img1:size(3)/2)
    image.scale(img1,img1s,'bilinear')
    image.scale(img2,img2s,'bilinear')
-   
+   sys.tic()
    local resn,resa,warp,resx,resy = 
-      infer{pair={img1s,img2s},
+      opticalflow.infer{pair={img1s,img2s},
 	    alpha=0.005,ratio=0.6,
 	    minWidth=50,nOuterFPIterations=6,
 	    nInnerFPIterations=1,
 	    nCGIterations=40}
+   print("Time to infer:",sys.toc())
    
-   local resn_q = 
-      torch.Tensor():resizeAs(resn):copy(resn):div(resn:max()):mul(6):floor():div(8)
-   local resa_q = 
-      torch.Tensor():resizeAs(resa):copy(resa):div(360/16):floor():mul(360/16)
-
-   image.display{image={img1s, field2rgb(resn,resa), 
-			img1s, (img2s-img1s):abs(),
-			img2s, field2rgb(resn_q,resa_q), 
+   image.display{image={img1s, img2s, opticalflow.field2rgb(resn,resa),
 			warp, (warp-img1s):abs()}, 
-		 zoom=1,
-		 min=0, max=1,
-		 win_w=1300,
-		 win_h=500,
-		 legends={'input 1', 'flow field', 'input 1', 
-			  'input 1 - input 2',
-			  'input 2', 'quantized flow field', 
-			  'warped(input 2)', 
-			  'input 1 - warped(input 2)'},
+		 legends={'input 1', 'input 2', 'flow field',
+			  'warped(input 2)','input 1 - warped(input 2)'},
 		 legend="optical flow, method = C.Liu"}
    
    return resn, resa, warp
@@ -274,14 +261,14 @@ function opticalflow.field2rgb(...)
    max = math.max(max or norm:max(), 1e-2)
    
    -- merge them into an HSL image
-   local hsl = torch.Tensor(norm:size(1), norm:size(2), 3)
+   local hsl = torch.Tensor(3,norm:size(2), norm:size(3))
    -- hue = angle:
-   hsl:select(3,1):copy(angle):div(360)
+   hsl:select(1,1):copy(angle):div(360)
    -- saturation = normalized intensity:
-   hsl:select(3,2):copy(norm):div(max)
-   if saturate then hsl:select(3,2):tanh() end
+   hsl:select(1,2):copy(norm):div(max)
+   if saturate then hsl:select(1,2):tanh() end
    -- light varies inversely from saturation (null flow = white):
-   hsl:select(3,3):copy(hsl:select(3,2)):mul(-0.5):add(1)
+   hsl:select(1,3):copy(hsl:select(1,2)):mul(-0.5):add(1)
    
    -- convert HSL to RGB
    local rgb = image.hsl2rgb(hsl)
@@ -290,7 +277,7 @@ function opticalflow.field2rgb(...)
    if legend then
       _legend_ = _legend_
 	 or image.load(paths.concat(paths.install_lua_path, 'opticalflow/legend.png'),3)
-      legend = torch.Tensor(hsl:size(2)/8, hsl:size(2)/8, 3)
+      legend = torch.Tensor(3,hsl:size(2)/8, hsl:size(2)/8)
       image.scale(_legend_, legend, 'bilinear')
       rgb:narrow(1,1,legend:size(2)):narrow(2,hsl:size(2)-legend:size(2)+1,legend:size(2)):copy(legend)
    end
@@ -320,11 +307,18 @@ function opticalflow.xy2rgb(...)
       {arg='max', type='number', help='if not provided, norm:max() is used'}
    )
    
-   local norm = computeNorm(x,y)
-   local angle = computeAngle(x,y)
-   return field2rgb(norm,angle,max)
+   local norm = opticalflow.computeNorm(x,y)
+   local angle = opticalflow.computeAngle(x,y)
+   return opticalflow.field2rgb(norm,angle,max)
 end
 
+function opticalflow.imgL()
+   return image.load(sys.concat(sys.fpath(), 'img1.jpg'))
+end
+
+function opticalflow.imgR()
+   return image.load(sys.concat(sys.fpath(), 'img2.jpg'))
+end
 
    
 ------------------------------------------------------------

@@ -10,10 +10,12 @@ static const void* torch_FloatTensor_id = NULL;
 static const void* torch_DoubleTensor_id = NULL;
 
 
+#include "generic/GaussianPyramid.cpp"
+#include "generic/OpticalFlowCode.cpp"
 #include "generic/celiu.cpp"
 #include "THGenerateFloatTypes.h"
 
-
+extern "C" {
 DLL_EXPORT int luaopen_libceliu(lua_State *L)
 {
   torch_FloatTensor_id = luaT_checktypename2id(L, "torch.FloatTensor");
@@ -23,4 +25,5 @@ DLL_EXPORT int luaopen_libceliu(lua_State *L)
   libceliu_DoubleMain_init(L);
 
   return 1;
+}
 }

@@ -1144,7 +1144,7 @@ void Image<T>::ConvertToMatlab(T1 *pMatlabPlane)
 template <class T>
 void Image<T>::OutputToMatlab(mxArray *&matrix)
 {
-	int dims[3];
+	long int dims[3];
 	dims[0]=imHeight;
 	dims[1]=imWidth;
 	dims[2]=nChannels;

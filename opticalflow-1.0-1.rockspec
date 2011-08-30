@@ -52,11 +52,14 @@ build = {
 	 MESSAGE(STATUS "matlab include: " ${MATLAB_INCLUDE_DIR})
    	 MESSAGE(STATUS "project include: " ${PROJECT_SOURCE_DIR})
    	 MESSAGE(STATUS "cmake module: " ${CMAKE_MODULE_PATH})
-   	 add_library(celiu SHARED celiu.cpp generic/GaussianPyramid.cpp generic/OpticalFlowCode.cpp)
+   	 add_library(celiu SHARED celiu.cpp)
 
 	 link_directories (${TORCH_LIBRARY_DIR})
 	 target_link_libraries(celiu ${TORCH_LIBRARIES} ${MATLAB_LIBRARIES})
 	 install_files(/lua/opticalflow init.lua) 
+	 install_files(/lua/opticalflow img1.jpg)
+	 install_files(/lua/opticalflow img2.jpg) 
+
 	 install_targets(/lib celiu) 
 
    ]],
